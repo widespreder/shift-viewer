@@ -25,16 +25,11 @@
   }
   .subtitle {
     text-align: center;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: #666;
-    margin-bottom: 6px;
-    letter-spacing: 0.05em;
-  }
-  .updated {
-    text-align: center;
-    font-size: 0.65rem;
-    color: #555;
     margin-bottom: 20px;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
   }
   .week-label {
     font-size: 0.85rem;
@@ -283,8 +278,7 @@
 <body>
 
 <h1>PRESTIGE OKAYAMA</h1>
-<div class="subtitle">週間出勤表</div>
-<div class="updated" id="updatedLabel"></div>
+<div class="subtitle" id="subtitleLine">週間出勤表</div>
 
 <div class="filter-bar">
   <button class="filter-btn active" onclick="filterRows('all')">全員</button>
@@ -397,7 +391,7 @@ function renderHeader() {
   const y = w[0].start.slice(0, 4);
   document.getElementById('weekLabel').textContent =
     `${y}/${first.label}（${first.dow}）〜 ${last.label}（${last.dow}）`;
-  document.getElementById('updatedLabel').textContent = `最終更新：${shiftsData.updated}`;
+  document.getElementById('subtitleLine').textContent = `週間出勤表｜最終更新 ${shiftsData.updated}`;
 }
 
 function mergeStaff() {

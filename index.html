@@ -481,11 +481,12 @@ function renderCombined() {
   });
   tbody.innerHTML = html;
 
-  // ヘッダー高さを計測して出勤人数行の固定位置に反映
+  // ヘッダー高さを計測して出勤人数行の固定位置に反映（1px重ねて隙間防止）
   requestAnimationFrame(() => {
-    const headTh = document.querySelector('#combined thead th');
-    if (headTh) {
-      document.documentElement.style.setProperty('--head-h', headTh.offsetHeight + 'px');
+    const thead = document.querySelector('#combined thead');
+    if (thead) {
+      const h = Math.floor(thead.getBoundingClientRect().height) - 1;
+      document.documentElement.style.setProperty('--head-h', h + 'px');
     }
   });
 }
@@ -682,6 +683,14 @@ function applyFilters() {
 }
 
 // ===== 初期化 =====
+window.addEventListener('resize', () => {
+  const thead = document.querySelector('#combined thead');
+  if (thead) {
+    const h = Math.floor(thead.getBoundingClientRect().height) - 1;
+    document.documentElement.style.setProperty('--head-h', h + 'px');
+  }
+});
+
 async function init() {
   try {
     await loadData();

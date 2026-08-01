@@ -481,14 +481,7 @@ function renderCombined() {
   });
   tbody.innerHTML = html;
 
-  // ヘッダー高さを計測して出勤人数行の固定位置に反映（1px重ねて隙間防止）
-  requestAnimationFrame(() => {
-    const thead = document.querySelector('#combined thead');
-    if (thead) {
-      const h = Math.floor(thead.getBoundingClientRect().height) - 1;
-      document.documentElement.style.setProperty('--head-h', h + 'px');
-    }
-  });
+  syncHeadHeight();
 }
 
 // ===== メモ =====
@@ -683,13 +676,22 @@ function applyFilters() {
 }
 
 // ===== 初期化 =====
-window.addEventListener('resize', () => {
-  const thead = document.querySelector('#combined thead');
-  if (thead) {
-    const h = Math.floor(thead.getBoundingClientRect().height) - 1;
-    document.documentElement.style.setProperty('--head-h', h + 'px');
-  }
-});
+function syncHeadHeight() {
+  requestAnimationFrame(() => {
+    const thead = document.querySelector('#combined thead');
+    if (thead) {
+      // 3px重ねてサブピクセル/フォント差の隙間を完全に消す
+      const h = Math.floor(thead.getBoundingClientRect().height) - 3;
+      document.documentElement.style.setProperty('--head-h', h + 'px');
+    }
+  });
+}
+window.addEventListener('resize', syncHeadHeight);
+// Webフォント読み込み完了後に高さが変わるため再計測
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(syncHeadHeight);
+}
+window.addEventListener('load', syncHeadHeight);
 
 async function init() {
   try {

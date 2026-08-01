@@ -85,7 +85,8 @@
   }
   .date-select:focus { outline: none; border-color: #b8a88a; }
   .table-wrap {
-    overflow-x: auto;
+    overflow: auto;
+    max-height: 78vh;
     border-radius: 8px;
     border: 1px solid #1e2030;
     margin-bottom: 12px;
@@ -106,6 +107,7 @@
     border-bottom: 2px solid #b8a88a33;
     position: sticky;
     top: 0;
+    z-index: 4;
     font-size: 0.75rem;
     letter-spacing: 0.05em;
   }
@@ -115,7 +117,8 @@
     min-width: 80px;
     position: sticky;
     left: 0;
-    z-index: 3;
+    top: 0;
+    z-index: 6;
     background: #181a25;
   }
   thead th.sun { color: #e06060; }
@@ -195,8 +198,11 @@
     font-size: 0.7rem;
     padding: 6px 8px;
     border-bottom: 2px solid #1e2030;
+    position: sticky;
+    top: var(--head-h, 53px);
+    z-index: 3;
   }
-  .count-row th:first-child { text-align: left; padding-left: 14px; position: sticky; left: 0; z-index: 2; background: #13151e; }
+  .count-row th:first-child { text-align: left; padding-left: 14px; position: sticky; left: 0; top: var(--head-h, 53px); z-index: 5; background: #13151e; }
   .memo-overlay {
     display: none;
     position: fixed;
@@ -480,6 +486,14 @@ function renderCombined() {
     html += '</tr>';
   });
   tbody.innerHTML = html;
+
+  // ヘッダー高さを計測して出勤人数行の固定位置に反映
+  requestAnimationFrame(() => {
+    const headTh = document.querySelector('#combined thead th');
+    if (headTh) {
+      document.documentElement.style.setProperty('--head-h', headTh.offsetHeight + 'px');
+    }
+  });
 }
 
 // ===== メモ =====

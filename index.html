@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Schedule</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: #0f1117;
+    color: #e0e0e0;
+    padding: 20px 12px;
+    min-height: 100vh;
+  }
+  h1 {
+    text-align: center;
+    font-weight: 300;
+    font-size: 1.4rem;
+    letter-spacing: 0.15em;
+    color: #b8a88a;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #666;
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+  .updated {
+    text-align: center;
+    font-size: 0.65rem;
+    color: #555;
+    margin-bottom: 20px;
+  }
+  .week-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #b8a88a;
+    margin: 28px 0 10px;
+    border-left: 3px solid #b8a88a;
+    padding: 4px 0 4px 10px;
+  }
+  .filter-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .filter-btn {
+    padding: 5px 14px;
+    border: 1px solid #333;
+    background: transparent;
+    color: #999;
+    font-size: 0.75rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover { border-color: #b8a88a; color: #b8a88a; }
+  .filter-btn.active { background: #b8a88a; color: #0f1117; border-color: #b8a88a; font-weight: 600; }
+  .filter-today { border-color: #e06060 !important; color: #e06060 !important; }
+  .filter-today.active { background: #e06060 !important; color: #0f1117 !important; }
+  .filter-tomorrow { border-color: #60a5fa !important; color: #60a5fa !important; }
+  .filter-tomorrow.active { background: #60a5fa !important; color: #0f1117 !important; }
+  .date-select {
+    padding: 5px 24px 5px 10px;
+    border: 1px solid #333;
+    background: #0f1117;
+    color: #b8a88a;
+    font-size: 0.75rem;
+    border-radius: 20px;
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23b8a88a'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+  .date-select:focus { outline: none; border-color: #b8a88a; }
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #1e2030;
+    margin-bottom: 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    min-width: 900px;
+  }
+  thead th {
+    background: #181a25;
+    padding: 10px 8px;
+    text-align: center;
+    font-weight: 600;
+    color: #999;
+    border-bottom: 2px solid #b8a88a33;
+    position: sticky;
+    top: 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+  thead th:first-child {
+    text-align: left;
+    padding-left: 14px;
+    min-width: 80px;
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: #181a25;
+  }
+  thead th.sun { color: #e06060; }
+  thead th.sat { color: #6090e0; }
+  thead th.day-col { cursor: pointer; transition: background 0.15s; }
+  thead th.day-col:hover { background: #252836; }
+  thead th.day-col.active-day { background: #b8a88a33; border-bottom-color: #b8a88a; }
+  .week-border { border-right: 2px solid #b8a88a44 !important; }
+  tbody tr { transition: background 0.15s; }
+  tbody tr:hover { background: #1a1d2a; }
+  tbody tr.all-off { opacity: 0.3; }
+  tbody td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid #1a1c28;
+  }
+  tbody td:first-child {
+    text-align: left;
+    padding-left: 14px;
+    font-weight: 600;
+    color: #d0c8b8;
+    white-space: nowrap;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: #0f1117;
+    cursor: pointer;
+  }
+  tbody td:first-child.has-memo {
+    text-decoration: underline;
+    text-decoration-color: #b8a88a44;
+    text-underline-offset: 3px;
+  }
+  tbody td:first-child.has-memo::after {
+    content: '📝';
+    font-size: 0.6rem;
+    margin-left: 4px;
+  }
+  tbody tr:hover td:first-child { background: #1a1d2a; }
+  .badge {
+    display: inline-block;
+    width: 32px;
+    padding: 2px 0;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+  .badge-早 { background: #1a3a2a; color: #4ade80; }
+  .badge-遅 { background: #2a2a1a; color: #facc15; }
+  .badge-通 { background: #1a2a3a; color: #60a5fa; }
+  .badge-休 { color: #444; font-weight: 400; }
+  .badge-未 { background: #2a2030; color: #a78bfa; font-size: 0.6rem; }
+  .legend {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin: 16px 0 8px;
+    font-size: 0.7rem;
+    color: #888;
+    flex-wrap: wrap;
+  }
+  .legend span { display: flex; align-items: center; gap: 4px; }
+  .legend .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .note {
+    text-align: center;
+    font-size: 0.65rem;
+    color: #555;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+  .count-row th {
+    background: #13151e;
+    font-weight: 400;
+    color: #777;
+    font-size: 0.7rem;
+    padding: 6px 8px;
+    border-bottom: 2px solid #1e2030;
+  }
+  .count-row th:first-child { text-align: left; padding-left: 14px; position: sticky; left: 0; z-index: 2; background: #13151e; }
+  .memo-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+  }
+  .memo-overlay.show { display: flex; }
+  .memo-card {
+    background: #1e2030;
+    border: 1px solid #b8a88a44;
+    border-radius: 12px;
+    padding: 20px 24px;
+    max-width: 340px;
+    width: 92%;
+    color: #e0e0e0;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .memo-card h3 {
+    font-size: 1rem;
+    color: #b8a88a;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .memo-card p {
+    font-size: 0.85rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    color: #ccc;
+    margin-bottom: 12px;
+  }
+  .memo-card textarea {
+    width: 100%;
+    min-height: 110px;
+    background: #151722;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 10px;
+    resize: vertical;
+    line-height: 1.6;
+  }
+  .memo-card textarea:focus { outline: none; border-color: #b8a88a; }
+  .memo-btns { display: flex; gap: 8px; margin-top: 12px; }
+  .memo-btns button {
+    flex: 1;
+    padding: 9px;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .btn-save { background: #b8a88a; color: #0f1117; font-weight: 600; }
+  .btn-save:disabled { opacity: 0.4; }
+  .btn-cancel { background: #252836; color: #999; }
+  .save-status {
+    font-size: 0.7rem;
+    text-align: center;
+    margin-top: 8px;
+    min-height: 1em;
+  }
+  .save-status.ok { color: #4ade80; }
+  .save-status.err { color: #e06060; }
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>PRESTIGE OKAYAMA</h1>
+<div class="subtitle">週間出勤表</div>
+<div class="updated" id="updatedLabel"></div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="filterRows('all')">全員</button>
+  <button class="filter-btn" onclick="filterRows('working')">出勤者のみ</button>
+  <button class="filter-btn filter-today" onclick="filterToday()">今日</button>
+  <button class="filter-btn filter-tomorrow" onclick="filterTomorrow()">明日</button>
+  <select class="date-select" id="dateSelect" onchange="filterBySelect()">
+    <option value="">日付選択</option>
+  </select>
+</div>
+
+<div class="week-label" id="weekLabel"></div>
+<div class="table-wrap">
+<table id="combined">
+<thead><tr id="headerRow"></tr></thead>
+<tbody><tr><td class="loading">読み込み中...</td></tr></tbody>
+</table>
+</div>
+
+<div class="memo-overlay" id="memoOverlay" onclick="closeMemo()">
+  <div class="memo-card" onclick="event.stopPropagation()">
+    <h3 id="memoName"></h3>
+    <textarea id="memoInput" placeholder="メモを入力..."></textarea>
+    <div class="memo-btns">
+      <button class="btn-cancel" onclick="closeMemo()">閉じる</button>
+      <button class="btn-save" id="btnSave" onclick="saveMemo()">保存</button>
+    </div>
+    <div class="save-status" id="saveStatus"></div>
+  </div>
+</div>
+
+<div class="legend">
+  <span><span class="dot" style="background:#1a3a2a;"></span> 早 = 早番</span>
+  <span><span class="dot" style="background:#2a2a1a;"></span> 遅 = 遅番</span>
+  <span><span class="dot" style="background:#1a2a3a;"></span> 通 = 通し</span>
+  <span><span class="dot" style="background:#222;"></span> 休 = 休み</span>
+  <span><span class="dot" style="background:#2a2030;"></span> 未 = シフト作成中</span>
+</div>
+<div class="note">
+  ※病欠等により当日急な変更の可能性があります。<br>
+  リアルタイムな出勤状況はお電話でお問い合わせください：080-4342-9543
+</div>
+
+<script>
+// ============================================================
+// 設定：GitHub リポジトリ情報（メモ保存用）
+// Fine-grained PAT（このリポジトリの Contents: Read and write のみ）
+// ============================================================
+const GH = {
+  owner: 'widespreder',
+  repo: 'shift-viewer',
+  token: '',                       // ← Fine-grained PAT を貼り付け（空ならメモは閲覧のみ）
+  branch: 'main',
+};
+
+let shiftsData = null;   // shifts.json の中身
+let memos = {};          // memos.json の中身
+let memosSha = null;     // GitHub API 更新用
+let currentMemoName = '';
+let dateColumns = {};    // iso日付 → 列番号
+let dateLabels = {};     // 列番号 → 表示ラベル
+let totalDays = 0;
+
+async function loadData() {
+  const bust = '?t=' + Date.now();
+  const [shiftsRes, memosRes] = await Promise.all([
+    fetch('shifts.json' + bust),
+    fetch('memos.json' + bust),
+  ]);
+  shiftsData = await shiftsRes.json();
+  memos = await memosRes.json();
+}
+
+function buildDateMaps() {
+  dateColumns = {};
+  dateLabels = {};
+  let col = 1;
+  shiftsData.weeks.forEach(week => {
+    week.dates.forEach(d => {
+      dateColumns[d.iso] = col;
+      dateLabels[col] = `${d.label}(${d.dow})`;
+      col++;
+    });
+  });
+  totalDays = col - 1;
+}
+
+function renderHeader() {
+  const tr = document.getElementById('headerRow');
+  let html = '<th>名前</th>';
+  let col = 1;
+  shiftsData.weeks.forEach((week, wi) => {
+    week.dates.forEach((d, di) => {
+      const cls = [];
+      if (d.dow === '日') cls.push('sun');
+      if (d.dow === '土') cls.push('sat');
+      cls.push('day-col');
+      // 週の最終日に区切り線（最後の週以外）
+      if (di === week.dates.length - 1 && wi < shiftsData.weeks.length - 1) cls.push('week-border');
+      html += `<th class="${cls.join(' ')}" onclick="filterDay(${col}, this)">${d.label}<br>${d.dow}</th>`;
+      col++;
+    });
+  });
+  tr.innerHTML = html;
+
+  // 週ラベル
+  const w = shiftsData.weeks;
+  const first = w[0].dates[0];
+  const last = w[w.length-1].dates[w[w.length-1].dates.length-1];
+  const y = w[0].start.slice(0, 4);
+  document.getElementById('weekLabel').textContent =
+    `${y}/${first.label}（${first.dow}）〜 ${last.label}（${last.dow}）`;
+  document.getElementById('updatedLabel').textContent = `最終更新：${shiftsData.updated}`;
+}
+
+function mergeStaff() {
+  // 週ごとのstaffを名前でマージして14日分の配列に
+  const nameMap = {};
+  const weekLens = shiftsData.weeks.map(w => w.dates.length);
+
+  shiftsData.weeks.forEach((week, wi) => {
+    week.staff.forEach(s => {
+      if (!nameMap[s.name]) {
+        // それまでの週を休で埋める
+        nameMap[s.name] = [];
+        for (let j = 0; j < wi; j++) {
+          nameMap[s.name].push(...new Array(weekLens[j]).fill('休'));
+        }
+      }
+      nameMap[s.name].push(...s.shifts);
+    });
+    // この週にいなかった人を休で埋める
+    Object.keys(nameMap).forEach(name => {
+      const expected = weekLens.slice(0, wi + 1).reduce((a, b) => a + b, 0);
+      while (nameMap[name].length < expected) nameMap[name].push('休');
+    });
+  });
+
+  return Object.entries(nameMap).map(([name, shifts]) => [name, ...shifts]);
+}
+
+function badge(s) {
+  if (s === '休') return '<span class="badge badge-休">休</span>';
+  if (s === '未') return '<span class="badge badge-未">未定</span>';
+  return `<span class="badge badge-${s}">${s}</span>`;
+}
+
+function renderCombined() {
+  const combined = mergeStaff();
+  const tbody = document.querySelector('#combined tbody');
+
+  const counts = new Array(totalDays).fill(0);
+  combined.forEach(row => {
+    for (let i = 1; i <= totalDays; i++) {
+      if (row[i] !== '休' && row[i] !== '未') counts[i-1]++;
+    }
+  });
+
+  // 週境界の列番号
+  const borderCols = new Set();
+  let acc = 0;
+  shiftsData.weeks.forEach((w, wi) => {
+    acc += w.dates.length;
+    if (wi < shiftsData.weeks.length - 1) borderCols.add(acc);
+  });
+
+  // Sort: メモあり → 出勤者 → 出勤日数順
+  const sorted = [...combined].sort((a, b) => {
+    const aMemo = !!memos[a[0]];
+    const bMemo = !!memos[b[0]];
+    if (aMemo && !bMemo) return -1;
+    if (!aMemo && bMemo) return 1;
+    const aOff = a.slice(1).every(v => v === '休' || v === '未');
+    const bOff = b.slice(1).every(v => v === '休' || v === '未');
+    if (aOff && !bOff) return 1;
+    if (!aOff && bOff) return -1;
+    const aCount = a.slice(1).filter(v => v !== '休' && v !== '未').length;
+    const bCount = b.slice(1).filter(v => v !== '休' && v !== '未').length;
+    return bCount - aCount;
+  });
+
+  let html = '<tr class="count-row"><th>出勤人数</th>';
+  counts.forEach((c, i) => {
+    html += `<th${borderCols.has(i+1) ? ' class="week-border"' : ''}>${c}人</th>`;
+  });
+  html += '</tr>';
+
+  sorted.forEach(row => {
+    const allOff = row.slice(1).every(v => v === '休' || v === '未');
+    const shifts = row.slice(1).filter(v => v !== '休' && v !== '未');
+    const shiftTypes = [...new Set(shifts)].join(',');
+    const dayShifts = row.slice(1).map((v, i) => `data-d${i+1}="${v}"`).join(' ');
+    html += `<tr class="${allOff ? 'all-off' : ''}" data-working="${!allOff}" data-shifts="${shiftTypes}" ${dayShifts}>`;
+    const hasMemo = !!memos[row[0]];
+    html += `<td class="${hasMemo ? 'has-memo' : ''}" onclick="openMemo('${row[0]}')">${row[0]}</td>`;
+    for (let i = 1; i <= totalDays; i++) {
+      html += `<td${borderCols.has(i) ? ' class="week-border"' : ''}>${badge(row[i])}</td>`;
+    }
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+// ===== メモ =====
+function openMemo(name) {
+  currentMemoName = name;
+  document.getElementById('memoName').textContent = name;
+  document.getElementById('memoInput').value = memos[name] || '';
+  document.getElementById('saveStatus').textContent = '';
+  document.getElementById('saveStatus').className = 'save-status';
+  document.getElementById('btnSave').style.display = GH.token ? 'block' : 'none';
+  document.getElementById('memoOverlay').classList.add('show');
+}
+
+function closeMemo() {
+  document.getElementById('memoOverlay').classList.remove('show');
+  currentMemoName = '';
+}
+
+async function fetchMemosSha() {
+  const res = await fetch(
+    `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/memos.json?ref=${GH.branch}`,
+    { headers: { 'Authorization': `Bearer ${GH.token}`, 'Accept': 'application/vnd.github+json' } }
+  );
+  if (!res.ok) throw new Error('sha取得失敗: ' + res.status);
+  const data = await res.json();
+  return data.sha;
+}
+
+async function saveMemo() {
+  if (!GH.token) return;
+  const btn = document.getElementById('btnSave');
+  const status = document.getElementById('saveStatus');
+  btn.disabled = true;
+  status.textContent = '保存中...';
+  status.className = 'save-status';
+
+  const text = document.getElementById('memoInput').value.trim();
+  const newMemos = { ...memos };
+  if (text) newMemos[currentMemoName] = text;
+  else delete newMemos[currentMemoName];
+
+  try {
+    const sha = await fetchMemosSha();
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(newMemos, null, 1))));
+    const res = await fetch(
+      `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/memos.json`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${GH.token}`,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: `memo: ${currentMemoName}`,
+          content: content,
+          sha: sha,
+          branch: GH.branch,
+        }),
+      }
+    );
+    if (!res.ok) throw new Error('保存失敗: ' + res.status);
+    memos = newMemos;
+    renderCombined();
+    applyFilters();
+    status.textContent = '✓ 保存しました';
+    status.className = 'save-status ok';
+    setTimeout(closeMemo, 800);
+  } catch (e) {
+    status.textContent = '✗ ' + e.message;
+    status.className = 'save-status err';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ===== フィルター =====
+let activeShiftFilter = 'all';
+let activeDayCol = null;
+
+function getDateKey(offset) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.getFullYear() + '-' +
+    String(d.getMonth()+1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+
+function initDateSelect() {
+  const sel = document.getElementById('dateSelect');
+  sel.innerHTML = '<option value="">日付選択</option>';
+  const todayCol = dateColumns[getDateKey(0)] || 1;
+  Object.entries(dateLabels).forEach(([col, label]) => {
+    if (parseInt(col) < todayCol) return;
+    const opt = document.createElement('option');
+    opt.value = col;
+    opt.textContent = label;
+    sel.appendChild(opt);
+  });
+}
+
+function scrollToCol(col) {
+  requestAnimationFrame(() => {
+    const ths = document.querySelectorAll('#combined thead .day-col');
+    const wrap = document.querySelector('.table-wrap');
+    if (wrap && ths[col-1]) {
+      const thRect = ths[col-1].getBoundingClientRect();
+      const wrapRect = wrap.getBoundingClientRect();
+      const nameTh = document.querySelector('#combined thead th:first-child');
+      const nameWidth = nameTh ? nameTh.offsetWidth : 80;
+      const scrollTarget = wrap.scrollLeft + (thRect.left - wrapRect.left) - nameWidth;
+      wrap.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+    }
+  });
+}
+
+function filterByCol(col, activeClass) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (activeClass) {
+    const btn = document.querySelector('.' + activeClass);
+    if (btn) btn.classList.add('active');
+  }
+  document.getElementById('dateSelect').value = col || '';
+
+  document.querySelectorAll('.day-col').forEach(th => th.classList.remove('active-day'));
+
+  if (!col) {
+    activeShiftFilter = 'all';
+    activeDayCol = null;
+    applyFilters();
+    return;
+  }
+
+  const ths = document.querySelectorAll('#combined thead .day-col');
+  if (ths[col-1]) ths[col-1].classList.add('active-day');
+
+  activeShiftFilter = 'working';
+  activeDayCol = col;
+  applyFilters();
+  scrollToCol(col);
+}
+
+function filterToday() { filterByCol(dateColumns[getDateKey(0)], 'filter-today'); }
+function filterTomorrow() { filterByCol(dateColumns[getDateKey(1)], 'filter-tomorrow'); }
+
+function filterBySelect() {
+  const val = document.getElementById('dateSelect').value;
+  if (!val) { filterRows('all'); return; }
+  filterByCol(parseInt(val), null);
+}
+
+function filterRows(mode) {
+  activeShiftFilter = mode;
+  activeDayCol = null;
+  document.querySelectorAll('.day-col').forEach(th => th.classList.remove('active-day'));
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('dateSelect').value = '';
+  if (event && event.target) event.target.classList.add('active');
+  applyFilters();
+}
+
+function filterDay(col, thEl) {
+  if (activeDayCol === col) {
+    activeDayCol = null;
+    thEl.classList.remove('active-day');
+    applyFilters();
+    return;
+  }
+  document.querySelectorAll('.day-col').forEach(th => th.classList.remove('active-day'));
+  activeDayCol = col;
+  thEl.classList.add('active-day');
+  applyFilters();
+  scrollToCol(col);
+}
+
+function applyFilters() {
+  const rows = document.querySelectorAll('#combined tbody tr:not(.count-row)');
+  rows.forEach(tr => {
+    let show = true;
+    if (activeShiftFilter === 'working') {
+      if (tr.dataset.working !== 'true') show = false;
+    } else if (activeShiftFilter !== 'all') {
+      const shifts = tr.dataset.shifts || '';
+      if (!shifts.includes(activeShiftFilter)) show = false;
+    }
+    if (show && activeDayCol) {
+      const dayVal = tr.dataset[`d${activeDayCol}`];
+      if (!dayVal || dayVal === '休' || dayVal === '未') show = false;
+    }
+    tr.style.display = show ? '' : 'none';
+  });
+}
+
+// ===== 初期化 =====
+async function init() {
+  try {
+    await loadData();
+    buildDateMaps();
+    renderHeader();
+    initDateSelect();
+    renderCombined();
+  } catch (e) {
+    document.querySelector('#combined tbody').innerHTML =
+      `<tr><td class="loading">データ読み込みエラー: ${e.message}</td></tr>`;
+  }
+}
+init();
+</script>
+</body>
+</html>

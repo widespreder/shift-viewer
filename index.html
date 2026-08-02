@@ -273,12 +273,138 @@
     color: #666;
     font-size: 0.85rem;
   }
+  /* タブ */
+  .tab-bar {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #1e2030;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 12px;
+    background: transparent;
+    border: none;
+    color: #666;
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    color: #b8a88a;
+    border-bottom-color: #b8a88a;
+    font-weight: 600;
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  /* 予約フォーム */
+  .form-group { margin-bottom: 18px; }
+  .form-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #b8a88a;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+  .seg { display: flex; gap: 8px; }
+  .seg-btn {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #333;
+    background: #151722;
+    color: #999;
+    font-family: inherit;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .seg-btn.active {
+    background: #b8a88a;
+    color: #0f1117;
+    border-color: #b8a88a;
+    font-weight: 600;
+  }
+  .sel {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #333;
+    background: #151722;
+    color: #e0e0e0;
+    font-family: inherit;
+    font-size: 1rem;
+    border-radius: 10px;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M0 0l6 7 6-7z' fill='%23b8a88a'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+  .sel:focus { outline: none; border-color: #b8a88a; }
+  .time-row { display: flex; gap: 10px; }
+  .time-row .form-group { flex: 1; }
+  .result-area {
+    width: 100%;
+    min-height: 130px;
+    margin-top: 8px;
+    padding: 14px;
+    background: #151722;
+    border: 1px solid #333;
+    border-radius: 10px;
+    color: #e0e0e0;
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    resize: vertical;
+  }
+  .result-area:focus { outline: none; border-color: #b8a88a; }
+  .copy-btn {
+    width: 100%;
+    padding: 12px;
+    background: #1e2030;
+    color: #b8a88a;
+    border: 1px solid #b8a88a55;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  .copy-btn:active { background: #252836; }
+  .copy-btn.copied {
+    background: #1a3a2a;
+    color: #4ade80;
+    border-color: #4ade80;
+  }
+  .line-btn {
+    width: 100%;
+    padding: 12px;
+    background: #06C755;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  .line-btn:active { opacity: 0.85; }
 </style>
 </head>
 <body>
 
 <h1>PRESTIGE OKAYAMA</h1>
 <div class="subtitle" id="subtitleLine">週間出勤表</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('shift', this)">出勤表</button>
+  <button class="tab-btn" onclick="switchTab('reserve', this)">予約</button>
+</div>
+
+<div class="tab-content active" id="tab-shift">
 
 <div class="filter-bar">
   <button class="filter-btn active" onclick="filterRows('all')">全員</button>
@@ -321,6 +447,45 @@
   ※病欠等により当日急な変更の可能性があります。<br>
   リアルタイムな出勤状況はお電話でお問い合わせください：080-4342-9543
 </div>
+
+</div><!-- /tab-shift -->
+
+<div class="tab-content" id="tab-reserve">
+
+  <div class="form-group">
+    <span class="form-label">日付</span>
+    <div class="seg" id="daySeg">
+      <button class="seg-btn active" data-val="本日" onclick="pickSeg('daySeg', this)">本日</button>
+      <button class="seg-btn" data-val="明日" onclick="pickSeg('daySeg', this)">明日</button>
+    </div>
+  </div>
+
+  <div class="time-row">
+    <div class="form-group">
+      <span class="form-label">開始時間</span>
+      <select class="sel" id="startTime" onchange="createText()"></select>
+    </div>
+    <div class="form-group">
+      <span class="form-label">施術時間</span>
+      <select class="sel" id="duration" onchange="createText()"></select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <span class="form-label">予約店舗</span>
+    <div class="seg" id="storeSeg">
+      <button class="seg-btn active" data-val="岡山" onclick="pickSeg('storeSeg', this)">岡山</button>
+      <button class="seg-btn" data-val="倉敷" onclick="pickSeg('storeSeg', this)">倉敷</button>
+    </div>
+  </div>
+
+  <textarea class="result-area" id="resultText" placeholder="ここに予約文章が表示されます"></textarea>
+
+  <button class="copy-btn" id="copyBtn" onclick="copyText()">📋 コピー</button>
+
+  <button class="line-btn" onclick="sendToLine()">📋 コピーしてLINEを開く</button>
+
+</div><!-- /tab-reserve -->
 
 <script>
 // ============================================================
@@ -687,6 +852,95 @@ function syncHeadHeight() {
   });
 }
 window.addEventListener('resize', syncHeadHeight);
+
+// ===== タブ切替 =====
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'shift') syncHeadHeight();
+}
+
+// ===== 予約フォーム =====
+function initReserveForm() {
+  const st = document.getElementById('startTime');
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m += 10) {
+      const label = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+      const opt = document.createElement('option');
+      opt.value = label;
+      opt.textContent = label;
+      if (label === '15:00') opt.selected = true;
+      st.appendChild(opt);
+    }
+  }
+  const du = document.getElementById('duration');
+  for (let min = 50; min <= 120; min += 10) {
+    const opt = document.createElement('option');
+    opt.value = min;
+    opt.textContent = min + '分';
+    if (min === 60) opt.selected = true;
+    du.appendChild(opt);
+  }
+  createText();
+}
+
+function pickSeg(groupId, btn) {
+  document.querySelectorAll('#' + groupId + ' .seg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  createText();
+}
+
+function getSegVal(groupId) {
+  return document.querySelector('#' + groupId + ' .seg-btn.active').dataset.val;
+}
+
+function createText() {
+  const day = getSegVal('daySeg');
+  const time = document.getElementById('startTime').value;
+  const dur = document.getElementById('duration').value;
+  const store = getSegVal('storeSeg');
+  const text =
+    'こんにちは！\n' +
+    day + 'の' + time + 'からですが' + store + 'でプレミアムクーポン' + dur + '分で予約できますでしょうか？\n' +
+    'よろしくお願いします🙇‍♂️';
+  document.getElementById('resultText').value = text;
+}
+
+async function copyText() {
+  const text = document.getElementById('resultText').value;
+  if (!text) return;
+  const btn = document.getElementById('copyBtn');
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (e) {
+    const ta = document.getElementById('resultText');
+    ta.select();
+    document.execCommand('copy');
+  }
+  btn.textContent = '✓ コピーしました';
+  btn.classList.add('copied');
+  setTimeout(() => {
+    btn.textContent = '📋 コピー';
+    btn.classList.remove('copied');
+  }, 1500);
+}
+
+async function sendToLine() {
+  const text = document.getElementById('resultText').value;
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (e) {
+    const ta = document.getElementById('resultText');
+    ta.select();
+    document.execCommand('copy');
+  }
+  setTimeout(() => {
+    window.location.href = 'line://';
+  }, 300);
+}
 // Webフォント読み込み完了後に高さが変わるため再計測
 if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(syncHeadHeight);
@@ -694,6 +948,7 @@ if (document.fonts && document.fonts.ready) {
 window.addEventListener('load', syncHeadHeight);
 
 async function init() {
+  initReserveForm();
   try {
     await loadData();
     buildDateMaps();
